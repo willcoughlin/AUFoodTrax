@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <include layout="@layout/content_main" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        app:srcCompat="@drawable/ic_expand"
+        app:backgroundTint="@color/colorPrimary" />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="24dp"
+        android:layout_marginBottom="80dp"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorAccent"
+        app:fabSize="mini"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="24dp"
+        android:layout_marginBottom="130dp"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorAccent"
+        app:fabSize="mini"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="23dp"
+        android:layout_marginBottom="180dp"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorAccent"
+        app:fabSize="mini"/>
+
+    <!--<TextView-->
+        <!--android:id="@+id/fab_label_1"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="bottom|end"-->
+        <!--android:layout_marginRight="70dp"-->
+        <!--android:layout_marginBottom="83dp"-->
+        <!--android:background="@drawable/fab_label_box"-->
+        <!--android:textColor="#FFFFFF"-->
+        <!--android:visibility="invisible"-->
+        <!--android:text="Label 1"/>-->
+
+    <!--<TextView-->
+        <!--android:id="@+id/fab_label_2"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="bottom|end"-->
+        <!--android:layout_marginRight="70dp"-->
+        <!--android:layout_marginBottom="133dp"-->
+        <!--android:background="@drawable/fab_label_box"-->
+        <!--android:textColor="#FFFFFF"-->
+        <!--android:visibility="invisible"-->
+        <!--android:text="Label 2"/>-->
+
+    <!--<TextView-->
+        <!--android:id="@+id/fab_label_3"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="bottom|end"-->
+        <!--android:layout_marginRight="70dp"-->
+        <!--android:layout_marginBottom="182dp"-->
+        <!--android:background="@drawable/fab_label_box"-->
+        <!--android:textColor="#FFFFFF"-->
+        <!--android:visibility="invisible"-->
+        <!--android:text="Label 3"/>-->
+
+</android.support.design.widget.CoordinatorLayout>

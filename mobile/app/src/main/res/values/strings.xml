@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">AU FoodTrax</string>
+    <string name="action_settings">Settings</string>
+
+    <!--Info Screen Strings-->
+    <string name="about_title">About</string>
+    <string name="copy_text">FoodTrax: an easy to use, crowdsourced locator for the food trucks of Auburn University.\n</string>
+    <string name="license_title">License</string>
+    <string name="license">
+        MIT License
+        \n\n
+        Copyright (c) 2017 William Coughlin
+        \n\n
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        \n\n
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        \n\n
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.\n
+    </string>
+    <string name="other_title">\nOther Notices\n</string>
+
+    <!--New Report Form Strings-->
+    <string name="form_title">Choose Report Type</string>
+    <string name="report_type_1">Error Report: A truck\'s current location on the map is incorrect</string>
+    <string name="report_type_2">New Location Report: A truck is not currently reported on the map.</string>
+
+</resources>
