@@ -20,8 +20,15 @@ import android.widget.TextView;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+
+import wfc.auft.mobile.tasks.MapPopulateAsyncTask;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
 
@@ -129,11 +136,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.603, -85.486)));
-        map.setMinZoomPreference(17);
+        map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
+        map.setMinZoomPreference(17.5f);
         map.setLatLngBoundsForCameraTarget(new LatLngBounds(
                 new LatLng(32.598, -85.490), new LatLng(32.609, -85.481)
         ));
+
+        Marker rsevltW1;
+        Marker rsevltW2;
+        Marker transcSw;
+        Marker hlytchSw;
+        Marker hlytchNw;
+        Marker hlytchNe;
+
+        MapPopulateAsyncTask task = new MapPopulateAsyncTask(MainActivity.this);
+        try {
+            Map<String, LatLng> pinLocations = task.execute().get();
+            rsevltW1 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w1")));
+            rsevltW2 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w2")));
+            transcSw = map.addMarker(new MarkerOptions().position(pinLocations.get("transc-sw")));
+            hlytchSw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-sw")));
+            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-nw")));
+            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-ne")));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -167,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    // animate open or close expanding fabMain
     private void animateFAB(){
         if(isFabOpen){ // do animations in reverse order when closing
             fab2.bringToFront();
