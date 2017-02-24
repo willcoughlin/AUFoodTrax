@@ -1,5 +1,6 @@
 package wfc.auft.mobile.tasks;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -11,18 +12,21 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.HashMap;
 import java.util.Map;
 
+import wfc.auft.mobile.MainDelegate;
 import wfc.auft.mobile.data.Locations;
 
 
-public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, LatLng>>
+public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<String, String>>>
 {
-    private Context context;
+    private MainDelegate activity;
     private ProgressDialog progressDialog;
 
-    public MapPopulateAsyncTask(Context context)
+    private Map<String, Map<String, String>> locations;
+
+    public MapPopulateAsyncTask(MainDelegate activity)
     {
-        this.context = context;
-        this.progressDialog = new ProgressDialog(context);
+        this.activity = activity;
+        this.progressDialog = new ProgressDialog(activity);
     }
 
     @Override
@@ -36,9 +40,7 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, LatL
     }
 
     @Override
-    protected Map<String, LatLng> doInBackground(Void... voids) {
-
-        Map<String, Map<String, String>> locations;
+    protected Map<String, Map<String, String>> doInBackground(Void... voids) {
         try {
             locations = Locations.getAllLocations();
         } catch (Exception e) {
@@ -46,24 +48,18 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, LatL
             return null;
         }
 
-        Map<String, LatLng> pinLocations = new HashMap<>();
-
-        for (String id : locations.keySet()) {
-            Double lat = Double.parseDouble(locations.get(id).get("lat"));
-            Double lng = Double.parseDouble(locations.get(id).get("lng"));
-
-            pinLocations.put(id, new LatLng(lat, lng));
-        }
-
-        return pinLocations;
+        return locations;
     }
 
 
-    protected void onPostExecute(Map<String, LatLng> result) {
+    protected void onPostExecute(Map<String, Map<String, String>> result) {
         super.onPostExecute(result);
         progressDialog.dismiss();
-        if (result == null || result.isEmpty())
-            Toast.makeText(context, "Failed to update. Check your internet connection.",
+        if (result == null || result.isEmpty()) {
+            Toast.makeText(activity, "Failed to update. Check your internet connection.",
                     Toast.LENGTH_LONG).show();
+        } else {
+            activity.updateMap(result);
+        }
     }
 }

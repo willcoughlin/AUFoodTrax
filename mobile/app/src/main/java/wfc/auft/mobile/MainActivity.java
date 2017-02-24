@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,7 +31,7 @@ import java.util.concurrent.ExecutionException;
 
 import wfc.auft.mobile.tasks.MapPopulateAsyncTask;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
+public class MainActivity extends MainDelegate implements OnMapReadyCallback, View.OnClickListener {
 
     // TODO create list view
 
@@ -42,7 +43,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private int currentContext;
     private View contentView;
-    private View mapView, infoView;
+
+    private View mapView;
+    private GoogleMap map;
+    private Marker rsevltW1;
+    private Marker rsevltW2;
+    private Marker transcSw;
+    private Marker hlytchSw;
+    private Marker hlytchNw;
+    private Marker hlytchNe;
+
+    private View infoView;
     private Boolean isFabOpen = false;
 
     private FloatingActionButton fabMain, fab1, fab2, fab3;
@@ -135,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap map) {
+        this.map = map;
+        
         map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
         map.setMinZoomPreference(17.5f);
@@ -142,26 +155,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 new LatLng(32.598, -85.490), new LatLng(32.609, -85.481)
         ));
 
-        Marker rsevltW1;
-        Marker rsevltW2;
-        Marker transcSw;
-        Marker hlytchSw;
-        Marker hlytchNw;
-        Marker hlytchNe;
 
-        MapPopulateAsyncTask task = new MapPopulateAsyncTask(MainActivity.this);
-        try {
-            Map<String, LatLng> pinLocations = task.execute().get();
-            rsevltW1 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w1")));
-            rsevltW2 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w2")));
-            transcSw = map.addMarker(new MarkerOptions().position(pinLocations.get("transc-sw")));
-            hlytchSw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-sw")));
-            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-nw")));
-            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-ne")));
+        MapPopulateAsyncTask task = new MapPopulateAsyncTask(this);
+        task.execute();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Map<String, LatLng> pinLocations = task.execute().get();
+//            rsevltW1 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w1")));
+//            rsevltW2 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w2")));
+//            transcSw = map.addMarker(new MarkerOptions().position(pinLocations.get("transc-sw")));
+//            hlytchSw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-sw")));
+//            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-nw")));
+//            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-ne")));
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -261,5 +270,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (newView.equals(infoView)) {
             ((TextView)findViewById(R.id.textView4)).setMovementMethod(new ScrollingMovementMethod());
         }
+    }
+
+    public void updateMap(Map<String, Map<String, String>> locations) {
+
+        Map<String, LatLng> pinLocations = new HashMap<>();
+
+        for (String id : locations.keySet()) {
+            Double lat = Double.parseDouble(locations.get(id).get("lat"));
+            Double lng = Double.parseDouble(locations.get(id).get("lng"));
+
+            pinLocations.put(id, new LatLng(lat, lng));
+        }
+
+        rsevltW1 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w1")));
+        rsevltW2 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w2")));
+        transcSw = map.addMarker(new MarkerOptions().position(pinLocations.get("transc-sw")));
+        hlytchSw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-sw")));
+        hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-nw")));
+        hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-ne")));
     }
 }
