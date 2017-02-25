@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -18,53 +17,54 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import wfc.auft.mobile.tasks.MapPopulateAsyncTask;
 
-public class MainActivity extends MainDelegate implements OnMapReadyCallback, View.OnClickListener {
+public class MainActivity extends MainDelegate implements OnMapReadyCallback, View.OnClickListener,
+        GoogleMap.OnMarkerClickListener {
 
-    // TODO create list view
+    /*
+     * TODO document code
+     * TODO Trucks class w requests
+     * TODO change title in marker info windows from truck id to truck name
+     * TODO add list view
+     * TODO add report form
+     * TODO clean commented code
+     */
 
     // Context definitions
     final int CONTEXT_MAP   = 0;
     final int CONTEXT_INFO  = 1;
-    final int CONTEXT_NEW   = 2;
-    final int CONTEXT_LIST  = 3;
+    final int CONTEXT_LIST  = 2;
 
     private int currentContext;
     private View contentView;
 
     private View mapView;
     private GoogleMap map;
-    private Marker rsevltW1;
-    private Marker rsevltW2;
-    private Marker transcSw;
-    private Marker hlytchSw;
-    private Marker hlytchNw;
-    private Marker hlytchNe;
+    private MapPopulateAsyncTask mapPopulateAsyncTask;
+    private Map<String, Marker> mapMarkers;
+    private Map<String, Map<String, String>> locations;
 
     private View infoView;
-    private Boolean isFabOpen = false;
 
+    private Boolean isFabOpen = false;
     private FloatingActionButton fabMain, fab1, fab2, fab3;
 
     private Animation fabMainRotateRight, fabMainRotateLeft;
     private Animation fab1SlideUp, fab1SlideDown;
     private Animation fab2SlideUp, fab2SlideDown;
     private Animation fab3SlideUp, fab3SlideDown;
-    private Animation fabChangeShrink, fabChangeExpand;
-
-    private String deviceID;
+    private Animation fab3Rotate;
 
 
     @Override
@@ -73,7 +73,7 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         setContentView(R.layout.activity_main);
 
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        deviceID = sharedPref.getString("deviceID", "NO_ID");
+        String deviceID = sharedPref.getString("deviceID", "NO_ID");
 
         if (deviceID.equals("NO_ID")) {
             deviceID = UUID.randomUUID().toString();
@@ -96,6 +96,7 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         fab2.setOnClickListener(this);
         fab3.setOnClickListener(this);
 
+        fab3.setImageResource(R.drawable.ic_refresh); // fab3 (top) is always refresh
         setFabContext(currentContext);
 
         // Define animations
@@ -111,8 +112,10 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         fab3SlideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_3_slide_up);
         fab3SlideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_3_slide_down);
 
-        fabChangeShrink = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_shrink);
-        fabChangeExpand = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_expand);
+        //fabChangeShrink = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_shrink);
+        //fabChangeExpand = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_expand);
+
+        fab3Rotate = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_3_rotate);
 
         LayoutTransition layoutTransition = new LayoutTransition();
         ((ViewGroup) contentView).setLayoutTransition(layoutTransition);
@@ -120,6 +123,8 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         // Create map
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        mapPopulateAsyncTask = new MapPopulateAsyncTask(this);
+
     }
 
     @Override
@@ -147,38 +152,26 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
     @Override
     public void onMapReady(GoogleMap map) {
         this.map = map;
-        
+
         map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
-        map.setMinZoomPreference(17.5f);
+       // map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
+        //map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
+        map.setMinZoomPreference(17.0f);
         map.setLatLngBoundsForCameraTarget(new LatLngBounds(
                 new LatLng(32.598, -85.490), new LatLng(32.609, -85.481)
         ));
+        map.setOnMarkerClickListener(this);
 
-
-        MapPopulateAsyncTask task = new MapPopulateAsyncTask(this);
-        task.execute();
-
-//        try {
-//            Map<String, LatLng> pinLocations = task.execute().get();
-//            rsevltW1 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w1")));
-//            rsevltW2 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w2")));
-//            transcSw = map.addMarker(new MarkerOptions().position(pinLocations.get("transc-sw")));
-//            hlytchSw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-sw")));
-//            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-nw")));
-//            hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-ne")));
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        mapPopulateAsyncTask.execute();
     }
 
     @Override
     public void onClick(View v) {
+        Log.d("onClick", "marker not clicked");
         int id = v.getId();
         if (id == R.id.fab_main) {
             animateFAB();
-            return;
+            // removed unnecessary return
         }
         else {
             if (id == R.id.fab_1 ) {
@@ -190,18 +183,107 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
                 }
             }
             else if (id == R.id.fab_2) {
-                if (currentContext == CONTEXT_NEW) {
+                if (currentContext == CONTEXT_LIST) {
                     currentContext = CONTEXT_MAP;
                 }
                 else {
-                    currentContext = CONTEXT_NEW;
+                    currentContext = CONTEXT_LIST;
                 }
+            }
+            else if(id == R.id.fab_3) {
+                fab3Rotate.setRepeatCount(-1);
+                fab3.startAnimation(fab3Rotate);
+                new MapPopulateAsyncTask(this).execute();
             }
 
             //v.startAnimation(fabChangeShrink);
             setFabContext(currentContext);
             //v.startAnimation(fabChangeExpand);
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        CameraPosition newPosition = new CameraPosition.Builder()
+                .target(marker.getPosition())
+                .zoom(17.7f).build();
+
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(newPosition));
+        marker.showInfoWindow();
+        return true;
+    }
+
+    public void updateMap(Map<String, Map<String, String>> locations) {
+
+        map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
+        map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
+
+        if (isFabOpen) {
+            // If fab is open when this is called then it was called because the refresh button was
+            // pressed.  Stop the spin animation and show the fab3 in the place it was.
+            fab3Rotate.setRepeatCount(0);
+            //fab3.clearAnimation();
+            //fab3.setVisibility(View.VISIBLE);
+        }
+
+        if (locations == null || locations.isEmpty())
+            return; // no data to load to map
+
+
+        map.clear();
+        mapMarkers = new HashMap<>();
+        //this.locations = locations; // will this be needed?
+        //Map<String, LatLng> pinLocations = new HashMap<>();
+       // Map<String, MarkerOptions> mapMarkerOptions = new HashMap<>();
+
+        for (String id : locations.keySet()) {
+            Double lat = Double.parseDouble(locations.get(id).get("lat"));
+            Double lng = Double.parseDouble(locations.get(id).get("lng"));
+
+            //pinLocations.put(id, new LatLng(lat, lng));
+
+            LatLng position = new LatLng(lat, lng);
+            String title = locations.get(id).get("truck");
+            String snippet = locations.get(id).get("desc");
+            MarkerOptions options =
+                    new MarkerOptions().position(position).title(title).snippet(snippet);
+            //mapMarkerOptions.put(id, options);
+
+            if (title.length() > 1)
+                mapMarkers.put(id, map.addMarker(options));
+        }
+
+
+
+//        Marker rsevltW1 = map.addMarker(new MarkerOptions()
+//                .position(pinLocations.get("rsevlt-w1"))
+//                .title("Test")
+//                .snippet(locations.get("rsevlt-w1").get("desc")));
+//
+//        Marker rsevltW2 = map.addMarker(new MarkerOptions()
+//                .position(pinLocations.get("rsevlt-w2"))
+//                .title("Test")
+//                .snippet(locations.get("rsevlt-w2").get("desc")));
+//
+//        Marker transcSw = map.addMarker(new MarkerOptions()
+//                .position(pinLocations.get("transc-sw"))
+//                .title("Test")
+//                .snippet(locations.get("transc-sw").get("desc")));
+//
+//        Marker hlytchSw = map.addMarker(new MarkerOptions()
+//                .position(pinLocations.get("hlytch-sw"))
+//                .title("Test")
+//                .snippet(locations.get("hlytch-sw").get("desc")));
+//
+//        Marker hlytchNw = map.addMarker(new MarkerOptions()
+//                .position(pinLocations.get("hlytch-nw"))
+//                .title("Test")
+//                .snippet(locations.get("hlytch-nw").get("desc")));
+//
+//        Marker hlytchNe = map.addMarker(new MarkerOptions()
+//                .position(pinLocations.get("hlytch-ne"))
+//                .title("Test")
+//                .snippet(locations.get("hlytch-ne").get("desc")));
     }
 
     private void animateFAB(){
@@ -247,20 +329,20 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         if (CONTEXT == CONTEXT_MAP) {
             changeView(mapView);
             fab1.setImageResource(R.drawable.ic_info);
-            fab2.setImageResource(R.drawable.ic_new_report);
-            fab3.setImageResource(R.drawable.ic_reports_list);
+            fab2.setImageResource(R.drawable.ic_reports_list);
+            //fab3.setImageResource(R.drawable.ic_refresh);
 
         }
         else if (CONTEXT == CONTEXT_INFO) {
             changeView(infoView);
             fab1.setImageResource(R.drawable.ic_map);
-            fab2.setImageResource(R.drawable.ic_new_report);
-            fab3.setImageResource(R.drawable.ic_reports_list);
+            fab2.setImageResource(R.drawable.ic_reports_list);
+            //fab3.setImageResource(R.drawable.ic_refresh);
         }
-        else if (CONTEXT == CONTEXT_NEW) {
+        else if (CONTEXT == CONTEXT_LIST) {
             fab1.setImageResource(R.drawable.ic_info);
             fab2.setImageResource(R.drawable.ic_map);
-            fab3.setImageResource(R.drawable.ic_reports_list);
+            //fab3.setImageResource(R.drawable.ic_refresh);
         }
     }
 
@@ -272,22 +354,4 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         }
     }
 
-    public void updateMap(Map<String, Map<String, String>> locations) {
-
-        Map<String, LatLng> pinLocations = new HashMap<>();
-
-        for (String id : locations.keySet()) {
-            Double lat = Double.parseDouble(locations.get(id).get("lat"));
-            Double lng = Double.parseDouble(locations.get(id).get("lng"));
-
-            pinLocations.put(id, new LatLng(lat, lng));
-        }
-
-        rsevltW1 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w1")));
-        rsevltW2 = map.addMarker(new MarkerOptions().position(pinLocations.get("rsevlt-w2")));
-        transcSw = map.addMarker(new MarkerOptions().position(pinLocations.get("transc-sw")));
-        hlytchSw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-sw")));
-        hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-nw")));
-        hlytchNw = map.addMarker(new MarkerOptions().position(pinLocations.get("hlytch-ne")));
-    }
 }

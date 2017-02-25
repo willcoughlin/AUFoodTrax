@@ -33,7 +33,7 @@ public class Request {
     }
 
     /** @return result of a request which responds with JSON as a Map */
-    public static Map<String, Object> getWithMapResponse(String urlString) throws Exception {
+    static Map<String, Object> getWithMapResponse(String urlString) throws Exception {
         String textResponse = get(urlString);
         Gson gson = new Gson();
 

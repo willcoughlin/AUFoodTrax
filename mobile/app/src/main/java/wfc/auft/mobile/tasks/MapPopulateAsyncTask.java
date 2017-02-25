@@ -1,15 +1,9 @@
 package wfc.auft.mobile.tasks;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.os.AsyncTask;
-import android.os.SystemClock;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
-
-import java.util.HashMap;
 import java.util.Map;
 
 import wfc.auft.mobile.MainDelegate;
@@ -20,8 +14,6 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<
 {
     private MainDelegate activity;
     private ProgressDialog progressDialog;
-
-    private Map<String, Map<String, String>> locations;
 
     public MapPopulateAsyncTask(MainDelegate activity)
     {
@@ -41,6 +33,7 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<
 
     @Override
     protected Map<String, Map<String, String>> doInBackground(Void... voids) {
+        Map<String, Map<String, String>> locations;
         try {
             locations = Locations.getAllLocations();
         } catch (Exception e) {
@@ -58,8 +51,9 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<
         if (result == null || result.isEmpty()) {
             Toast.makeText(activity, "Failed to update. Check your internet connection.",
                     Toast.LENGTH_LONG).show();
-        } else {
+        } /*else {
             activity.updateMap(result);
-        }
+        } */
+        activity.updateMap(result);
     }
 }

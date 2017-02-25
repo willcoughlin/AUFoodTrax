@@ -1,15 +1,15 @@
 <resources>
-    <string name="app_name">AU FoodTrax</string>
+    <string name="app_name">AUFoodTrax</string>
     <string name="action_settings">Settings</string>
 
     <!--Info Screen Strings-->
     <string name="about_title">About</string>
-    <string name="copy_text">FoodTrax: an easy to use, crowdsourced locator for the food trucks of Auburn University.\n</string>
+    <string name="copy_text">AUFoodTrax is an easy to use, crowdsourced locator for the food trucks of Auburn University.\n</string>
     <string name="license_title">License</string>
     <string name="license">
         MIT License
         \n\n
-        Copyright (c) 2017 William Coughlin
+        Copyright © 2017 William Coughlin
         \n\n
         Permission is hereby granted, free of charge, to any person obtaining a copy
         of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +29,7 @@
         OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
         SOFTWARE.\n
     </string>
-    <string name="other_title">\nOther Notices\n</string>
 
-    <!--New Report Form Strings-->
-    <string name="form_title">Choose Report Type</string>
-    <string name="report_type_1">Error Report: A truck\'s current location on the map is incorrect</string>
-    <string name="report_type_2">New Location Report: A truck is not currently reported on the map.</string>
+
 
 </resources>

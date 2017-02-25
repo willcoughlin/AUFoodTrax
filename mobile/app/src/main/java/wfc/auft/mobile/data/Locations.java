@@ -7,7 +7,7 @@ import java.util.Map;
  * This class requests any or all set locations from the specified URL.
  */
 public class Locations {
-    public static final String REQUEST_URL =
+    private static final String REQUEST_URL =
             "http://aufoodtrax.azurewebsites.net/webservice/locations";
 
 
@@ -18,6 +18,8 @@ public class Locations {
 
         for (String key : responseResult.keySet()) {
             Map<String, String> entry = new HashMap<>();
+
+            @SuppressWarnings("unchecked") // We know this will always be a Map<String,Object>
             Map<String, Object> responseEntry = (Map<String, Object>) responseResult.get(key);
             for (String field : responseEntry.keySet())
                 entry.put(field, (String) responseEntry.get(field));

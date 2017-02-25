@@ -7,7 +7,7 @@
         android:fromXDelta="0.0"
         android:toXDelta="0.0"
 
-        android:fromYDelta="360.0"
+        android:fromYDelta="280.0"
         android:toYDelta="0.0"
         />
 

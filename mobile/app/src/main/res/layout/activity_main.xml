@@ -51,40 +51,5 @@
         app:backgroundTint="@color/colorAccent"
         app:fabSize="mini"/>
 
-    <!--<TextView-->
-        <!--android:id="@+id/fab_label_1"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="bottom|end"-->
-        <!--android:layout_marginRight="70dp"-->
-        <!--android:layout_marginBottom="83dp"-->
-        <!--android:background="@drawable/fab_label_box"-->
-        <!--android:textColor="#FFFFFF"-->
-        <!--android:visibility="invisible"-->
-        <!--android:text="Label 1"/>-->
-
-    <!--<TextView-->
-        <!--android:id="@+id/fab_label_2"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="bottom|end"-->
-        <!--android:layout_marginRight="70dp"-->
-        <!--android:layout_marginBottom="133dp"-->
-        <!--android:background="@drawable/fab_label_box"-->
-        <!--android:textColor="#FFFFFF"-->
-        <!--android:visibility="invisible"-->
-        <!--android:text="Label 2"/>-->
-
-    <!--<TextView-->
-        <!--android:id="@+id/fab_label_3"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="bottom|end"-->
-        <!--android:layout_marginRight="70dp"-->
-        <!--android:layout_marginBottom="182dp"-->
-        <!--android:background="@drawable/fab_label_box"-->
-        <!--android:textColor="#FFFFFF"-->
-        <!--android:visibility="invisible"-->
-        <!--android:text="Label 3"/>-->
 
 </android.support.design.widget.CoordinatorLayout>
