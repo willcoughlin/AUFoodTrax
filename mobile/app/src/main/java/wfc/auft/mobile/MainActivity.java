@@ -4,7 +4,6 @@ import android.animation.LayoutTransition;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
@@ -27,11 +26,10 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import wfc.auft.mobile.data.Trucks;
+import wfc.auft.mobile.tasks.FetchReportsAsyncTask;
 import wfc.auft.mobile.tasks.MapPopulateAsyncTask;
 
 public class MainActivity extends MainDelegate implements OnMapReadyCallback, View.OnClickListener,
@@ -46,15 +44,13 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
     // Context definitions
     final int CONTEXT_MAP   = 0;
     final int CONTEXT_INFO  = 1;
-    //final int CONTEXT_LIST  = 2;
 
     private int currentContext;
     private View contentView;
 
     private View mapView;
     private GoogleMap map;
-    private MapPopulateAsyncTask mapPopulateAsyncTask;
-    private Map<String, Marker> mapMarkers;
+
     private Map<String, Map<String, String>> locations;
     private Map<String, Map<String, String>> trucks;
 
@@ -68,6 +64,8 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
     private Animation fab2SlideUp, fab2SlideDown;
     private Animation fab3Rotate;
 
+    private String deviceID;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +73,7 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         setContentView(R.layout.activity_main);
 
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        String deviceID = sharedPref.getString("deviceID", "NO_ID");
+        deviceID = sharedPref.getString("deviceID", "NO_ID");
 
         if (deviceID.equals("NO_ID")) {
             deviceID = UUID.randomUUID().toString();
@@ -117,7 +115,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         // Create map
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        mapPopulateAsyncTask = new MapPopulateAsyncTask(this);
 
     }
 
@@ -148,8 +145,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         this.map = map;
 
         map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-       // map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
-        //map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
         map.setMinZoomPreference(17.0f);
         map.setLatLngBoundsForCameraTarget(new LatLngBounds(
                 new LatLng(32.598, -85.490), new LatLng(32.609, -85.481)
@@ -157,7 +152,7 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         map.setOnMarkerClickListener(this);
         map.setOnInfoWindowClickListener(this);
 
-        mapPopulateAsyncTask.execute();
+        new MapPopulateAsyncTask(this).execute();
     }
 
     @Override
@@ -223,27 +218,17 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
     }
 
     public void updateMap(Map<String, Map<String, Map<String, String>>> results) {
-
         locations = results.get("locations");
         trucks = results.get("trucks");
 
         map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
         map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
 
-        if (isFabOpen) {
-            // If fab is open when this is called then it was called because the refresh button was
-            // pressed.  Stop the spin animation and show the fab3 in the place it was.
-            fab3Rotate.setRepeatCount(0);
-            //fab3.clearAnimation();
-            //fab3.setVisibility(View.VISIBLE);
-        }
-
         if (locations == null || locations.isEmpty())
             return; // no data to load to map
 
 
         map.clear();
-        mapMarkers = new HashMap<>();
 
         for (String id : locations.keySet()) {
             Double lat = Double.parseDouble(locations.get(id).get("lat"));
@@ -274,9 +259,62 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
                 options.snippet(locations.get(id).get("desc"));
             }
 
-            mapMarkers.put(id, map.addMarker(options));
+            map.addMarker(options);
+            //mapMarkers.put(id, map.addMarker(options));
         }
 
+        new FetchReportsAsyncTask(this).execute();
+    }
+
+    public void updateReports(final Map<String, Map<String, String>> reports) {
+
+        if (isFabOpen) {
+            // If fab is open when this is called then it was called because the refresh button was
+            // pressed.  Stop the spin animation and show the fab3 in the place it was.
+            fab3Rotate.setRepeatCount(0);
+        }
+
+        for (String key : reports.keySet()) {
+
+            if (reports.get(key).get("user").equals(deviceID))
+                continue; // dont have user vote on their own report
+
+            AlertDialog.Builder voteDialog = new AlertDialog.Builder(this);
+
+            voteDialog.setTitle("Help improve our accuracy");
+
+            String truckName = trucks.get(reports.get(key).get("truck")).get("name");
+            String locationName = locations.get(reports.get(key).get("location")).get("desc");
+
+            voteDialog.setMessage("Is " + truckName + " currently at " + locationName + "?");
+
+            VoteDialogClickListener clickListener = new VoteDialogClickListener(this, key);
+
+            voteDialog.setPositiveButton("Yes", clickListener);
+            voteDialog.setNegativeButton("No", clickListener);
+            voteDialog.setNeutralButton("Don't know", clickListener);
+
+//            voteDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    // send vote
+//                }
+//            });
+//            voteDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    // send vote
+//                }
+//            });
+//            voteDialog.setNeutralButton("Don't know", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                   dialog.dismiss();
+//                }
+//            });
+
+            voteDialog.show();
+        }
     }
 
     private void animateFAB(){
@@ -346,4 +384,5 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         });
         reportDialog.show();
     }
+
 }

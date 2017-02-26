@@ -4,6 +4,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.operation.UpdateOperation;
+import org.bson.BSON;
 import org.bson.Document;
 import org.springframework.stereotype.Repository;
 import wfc.auft.webservice.common.DataSource;
@@ -42,4 +44,9 @@ public class LocationsDao {
         return target;
     }
 
+    void updateLocationById(String id, String field, String value) {
+        Document filter = new Document("_id", id);
+        Document update = new Document(field, value);
+        locationsCollection.updateOne(filter, new Document("$set", update));
+    }
 }

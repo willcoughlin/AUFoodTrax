@@ -43,4 +43,10 @@ public class TrucksDao {
 
         return target;
     }
+
+    void updateTruckById(String id, String field, String value) {
+        Document filter = new Document("_id", id);
+        Document update = new Document(field, value);
+        trucksCollection.updateOne(filter, new Document("$set", update));
+    }
 }

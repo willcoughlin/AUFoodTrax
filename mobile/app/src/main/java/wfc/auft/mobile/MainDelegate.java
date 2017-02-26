@@ -6,4 +6,6 @@ import java.util.Map;
 
 public abstract class MainDelegate extends AppCompatActivity {
     public abstract void updateMap(Map<String, Map<String, Map<String, String>>> locations);
+
+    public abstract void updateReports(Map<String, Map<String, String>> reports);
 }

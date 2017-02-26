@@ -25,7 +25,7 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        progressDialog.setMessage("Loading");
+        progressDialog.setMessage("Populating map");
         progressDialog.setIndeterminate(false);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setCancelable(true);
@@ -62,59 +62,9 @@ public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<
         super.onPostExecute(result);
         progressDialog.dismiss();
         if (result == null || result.isEmpty()) {
-            Toast.makeText(activity, "Failed to update. Check your internet connection.",
+            Toast.makeText(activity, "Failed to populate map. Check your internet connection.",
                     Toast.LENGTH_LONG).show();
-        } /*else {
-            activity.updateMap(result);
-        } */
+        }
         activity.updateMap(result);
     }
 }
-
-//public class MapPopulateAsyncTask extends AsyncTask<Void, Void, Map<String, Map<String, String>>>
-//{
-//    private MainDelegate activity;
-//    private ProgressDialog progressDialog;
-//
-//    public MapPopulateAsyncTask(MainDelegate activity)
-//    {
-//        this.activity = activity;
-//        this.progressDialog = new ProgressDialog(activity);
-//    }
-//
-//    @Override
-//    protected void onPreExecute() {
-//        super.onPreExecute();
-//        progressDialog.setMessage("Loading");
-//        progressDialog.setIndeterminate(false);
-//        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-//        progressDialog.setCancelable(true);
-//        progressDialog.show();
-//    }
-//
-//    @Override
-//    protected Map<String, Map<String, String>> doInBackground(Void... voids) {
-//        Map<String, Map<String, String>> locations;
-//        try {
-//            locations = Locations.getAllLocations();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//
-//        return locations;
-//    }
-//
-//
-//    protected void onPostExecute(Map<String, Map<String, String>> result) {
-//        super.onPostExecute(result);
-//        progressDialog.dismiss();
-//        if (result == null || result.isEmpty()) {
-//            Toast.makeText(activity, "Failed to update. Check your internet connection.",
-//                    Toast.LENGTH_LONG).show();
-//        } /*else {
-//            activity.updateMap(result);
-//        } */
-//        activity.updateMap(result);
-//    }
-//}

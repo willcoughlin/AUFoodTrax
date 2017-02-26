@@ -2,8 +2,14 @@ package wfc.auft.mobile.data;
 
 import com.google.gson.Gson;
 
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -42,4 +48,31 @@ public class Request {
 
         return map;
     }
+
+    public static void postJsonToUrl(JSONObject jsonObject, String urlString) throws Exception {
+
+
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("POST");
+
+        OutputStream os = conn.getOutputStream();
+        os.write(jsonObject.toString().getBytes("UTF-8"));
+        os.close();
+
+        // read the response
+        InputStream in = new BufferedInputStream(conn.getInputStream());
+        String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        JSONObject response = new JSONObject(result);
+
+
+        in.close();
+        conn.disconnect();
+        //return jsonObject;
+    }
+
 }
