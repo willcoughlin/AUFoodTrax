@@ -2,9 +2,12 @@ package wfc.auft.mobile;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -27,24 +31,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import wfc.auft.mobile.data.Trucks;
 import wfc.auft.mobile.tasks.MapPopulateAsyncTask;
 
 public class MainActivity extends MainDelegate implements OnMapReadyCallback, View.OnClickListener,
-        GoogleMap.OnMarkerClickListener {
+        GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     /*
-     * TODO document code
-     * TODO Trucks class w requests
-     * TODO change title in marker info windows from truck id to truck name
-     * TODO add list view
-     * TODO add report form
+     * TODO implement send report
+     * TODO implement send vote
      * TODO clean commented code
      */
 
     // Context definitions
     final int CONTEXT_MAP   = 0;
     final int CONTEXT_INFO  = 1;
-    final int CONTEXT_LIST  = 2;
+    //final int CONTEXT_LIST  = 2;
 
     private int currentContext;
     private View contentView;
@@ -54,16 +56,16 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
     private MapPopulateAsyncTask mapPopulateAsyncTask;
     private Map<String, Marker> mapMarkers;
     private Map<String, Map<String, String>> locations;
+    private Map<String, Map<String, String>> trucks;
 
     private View infoView;
 
     private Boolean isFabOpen = false;
-    private FloatingActionButton fabMain, fab1, fab2, fab3;
+    private FloatingActionButton fabMain, fab1, fab2;
 
     private Animation fabMainRotateRight, fabMainRotateLeft;
     private Animation fab1SlideUp, fab1SlideDown;
     private Animation fab2SlideUp, fab2SlideDown;
-    private Animation fab3SlideUp, fab3SlideDown;
     private Animation fab3Rotate;
 
 
@@ -89,14 +91,12 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         fabMain = (FloatingActionButton) findViewById(R.id.fab_main);
         fab1 = (FloatingActionButton)findViewById(R.id.fab_1);
         fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
-        fab3 = (FloatingActionButton)findViewById(R.id.fab_3);
 
         fabMain.setOnClickListener(this);
         fab1.setOnClickListener(this);
         fab2.setOnClickListener(this);
-        fab3.setOnClickListener(this);
 
-        fab3.setImageResource(R.drawable.ic_refresh); // fab3 (top) is always refresh
+        fab2.setImageResource(R.drawable.ic_refresh); // fab2 (top) is always refresh
         setFabContext(currentContext);
 
         // Define animations
@@ -108,12 +108,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
 
         fab2SlideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_2_slide_up);
         fab2SlideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_2_slide_down);
-
-        fab3SlideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_3_slide_up);
-        fab3SlideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_3_slide_down);
-
-        //fabChangeShrink = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_shrink);
-        //fabChangeExpand = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_expand);
 
         fab3Rotate = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_3_rotate);
 
@@ -161,6 +155,7 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
                 new LatLng(32.598, -85.490), new LatLng(32.609, -85.481)
         ));
         map.setOnMarkerClickListener(this);
+        map.setOnInfoWindowClickListener(this);
 
         mapPopulateAsyncTask.execute();
     }
@@ -182,23 +177,13 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
                     currentContext = CONTEXT_INFO;
                 }
             }
-            else if (id == R.id.fab_2) {
-                if (currentContext == CONTEXT_LIST) {
-                    currentContext = CONTEXT_MAP;
-                }
-                else {
-                    currentContext = CONTEXT_LIST;
-                }
-            }
-            else if(id == R.id.fab_3) {
+            else if(id == R.id.fab_2) {
                 fab3Rotate.setRepeatCount(-1);
-                fab3.startAnimation(fab3Rotate);
+                fab2.startAnimation(fab3Rotate);
                 new MapPopulateAsyncTask(this).execute();
             }
 
-            //v.startAnimation(fabChangeShrink);
             setFabContext(currentContext);
-            //v.startAnimation(fabChangeExpand);
         }
     }
 
@@ -213,7 +198,34 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         return true;
     }
 
-    public void updateMap(Map<String, Map<String, String>> locations) {
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        if (marker.getTitle().equals("Tap to report truck at this location")) {
+            reportTruckDialog(true);
+        } else  {
+            AlertDialog.Builder voteDialog = new AlertDialog.Builder(this);
+            voteDialog.setMessage("Is the currently reported truck accurate?");
+            voteDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // send vote
+                }
+            });
+            voteDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    reportTruckDialog(false);
+                }
+            });
+
+            voteDialog.show();
+        }
+    }
+
+    public void updateMap(Map<String, Map<String, Map<String, String>>> results) {
+
+        locations = results.get("locations");
+        trucks = results.get("trucks");
 
         map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
         map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
@@ -232,9 +244,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
 
         map.clear();
         mapMarkers = new HashMap<>();
-        //this.locations = locations; // will this be needed?
-        //Map<String, LatLng> pinLocations = new HashMap<>();
-       // Map<String, MarkerOptions> mapMarkerOptions = new HashMap<>();
 
         for (String id : locations.keySet()) {
             Double lat = Double.parseDouble(locations.get(id).get("lat"));
@@ -243,54 +252,35 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
             //pinLocations.put(id, new LatLng(lat, lng));
 
             LatLng position = new LatLng(lat, lng);
-            String title = locations.get(id).get("truck");
-            String snippet = locations.get(id).get("desc");
-            MarkerOptions options =
-                    new MarkerOptions().position(position).title(title).snippet(snippet);
-            //mapMarkerOptions.put(id, options);
 
-            if (title.length() > 1)
-                mapMarkers.put(id, map.addMarker(options));
+            MarkerOptions options =
+                    new MarkerOptions().position(position);
+
+            String truckId = locations.get(id).get("truck");
+
+            if (truckId.length() > 1) {
+                Map<String, String> currentTruck = trucks.get(truckId);
+
+                if (currentTruck != null)
+                    options.title(currentTruck.get("name"));
+                else
+                    options.title("No truck at this location");
+
+                options.snippet("Tap to confirm or report an error");
+
+                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            } else {
+                options.title("Tap to report truck at this location");
+                options.snippet(locations.get(id).get("desc"));
+            }
+
+            mapMarkers.put(id, map.addMarker(options));
         }
 
-
-
-//        Marker rsevltW1 = map.addMarker(new MarkerOptions()
-//                .position(pinLocations.get("rsevlt-w1"))
-//                .title("Test")
-//                .snippet(locations.get("rsevlt-w1").get("desc")));
-//
-//        Marker rsevltW2 = map.addMarker(new MarkerOptions()
-//                .position(pinLocations.get("rsevlt-w2"))
-//                .title("Test")
-//                .snippet(locations.get("rsevlt-w2").get("desc")));
-//
-//        Marker transcSw = map.addMarker(new MarkerOptions()
-//                .position(pinLocations.get("transc-sw"))
-//                .title("Test")
-//                .snippet(locations.get("transc-sw").get("desc")));
-//
-//        Marker hlytchSw = map.addMarker(new MarkerOptions()
-//                .position(pinLocations.get("hlytch-sw"))
-//                .title("Test")
-//                .snippet(locations.get("hlytch-sw").get("desc")));
-//
-//        Marker hlytchNw = map.addMarker(new MarkerOptions()
-//                .position(pinLocations.get("hlytch-nw"))
-//                .title("Test")
-//                .snippet(locations.get("hlytch-nw").get("desc")));
-//
-//        Marker hlytchNe = map.addMarker(new MarkerOptions()
-//                .position(pinLocations.get("hlytch-ne"))
-//                .title("Test")
-//                .snippet(locations.get("hlytch-ne").get("desc")));
     }
 
     private void animateFAB(){
         if(isFabOpen){ // do animations in reverse order when closing
-            fab2.bringToFront();
-            fab3.startAnimation(fab3SlideDown);
-
             fab1.bringToFront();
             fab2.startAnimation(fab2SlideDown);
 
@@ -301,7 +291,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
 
             fab1.setClickable(false);
             fab2.setClickable(false);
-            fab3.setClickable(false);
 
             isFabOpen = false;
         }
@@ -314,12 +303,8 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
             fab2.startAnimation(fab2SlideUp);
             fab2.bringToFront();
 
-            fab3.startAnimation(fab3SlideUp);
-            fab3.bringToFront();
-
             fab1.setClickable(true);
             fab2.setClickable(true);
-            fab3.setClickable(true);
 
             isFabOpen = true;
         }
@@ -329,20 +314,11 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         if (CONTEXT == CONTEXT_MAP) {
             changeView(mapView);
             fab1.setImageResource(R.drawable.ic_info);
-            fab2.setImageResource(R.drawable.ic_reports_list);
-            //fab3.setImageResource(R.drawable.ic_refresh);
 
         }
         else if (CONTEXT == CONTEXT_INFO) {
             changeView(infoView);
             fab1.setImageResource(R.drawable.ic_map);
-            fab2.setImageResource(R.drawable.ic_reports_list);
-            //fab3.setImageResource(R.drawable.ic_refresh);
-        }
-        else if (CONTEXT == CONTEXT_LIST) {
-            fab1.setImageResource(R.drawable.ic_info);
-            fab2.setImageResource(R.drawable.ic_map);
-            //fab3.setImageResource(R.drawable.ic_refresh);
         }
     }
 
@@ -354,4 +330,20 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         }
     }
 
+    private void reportTruckDialog(boolean vacant) {
+        String[] truckNames = {"Chick in a Box", "Firetruck Bar-B-Que",  "General Lee Hibachi",
+                "Philly Connection", "Smooth-N-Groove"};
+
+        AlertDialog.Builder reportDialog = new AlertDialog.Builder(this);
+        reportDialog.setTitle("Who's here now?");
+        reportDialog.setItems(truckNames, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+
+                // implement send report based on vacant or not
+            }
+        });
+        reportDialog.show();
+    }
 }
