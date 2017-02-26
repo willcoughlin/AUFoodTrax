@@ -1,5 +1,7 @@
 package wfc.auft.webservice.locations;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
@@ -9,7 +11,7 @@ import wfc.auft.webservice.common.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
-/** This class handles all DB requests regarding locations. */
+/** This class interfaces with the DB regarding locations. */
 @Repository
 public class LocationsDao {
     private MongoCollection<Document> locationsCollection = DataSource.mongoDatabase().getCollection("locations");
@@ -31,16 +33,10 @@ public class LocationsDao {
     /** @return a target location as specified, if found, null otherwise */
     Document getLocationById(String id) {
         Document target = null;
-        try (MongoCursor<Document> cursor = locationsCollection.find().iterator()) {
-            while (cursor.hasNext()) {
-                Document currentLocation = cursor.next();
-                String currentTruckId = currentLocation.getString("_id");
-
-                if (currentTruckId.equals(id)) {
-                    target = currentLocation;
-                    break;
-                }
-            }
+        BasicDBObject query = new BasicDBObject("_id", id);
+        try (MongoCursor<Document> cursor = locationsCollection.find(query).iterator()) {
+            while (cursor.hasNext())
+                target = cursor.next();
         }
 
         return target;

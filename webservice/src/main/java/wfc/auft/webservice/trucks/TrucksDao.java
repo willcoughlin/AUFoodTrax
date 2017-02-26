@@ -1,5 +1,6 @@
 package wfc.auft.webservice.trucks;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
@@ -34,16 +35,10 @@ public class TrucksDao {
     Document getTruckById(String id) {
         Document target = null;
 
-        try (MongoCursor<Document> cursor = trucksCollection.find().iterator()) {
-            while (cursor.hasNext()) {
-                Document currentTruck = cursor.next();
-                String currentTruckId = currentTruck.getString("_id");
-
-                if (currentTruckId.equals(id)) {
-                    target = currentTruck;
-                    break;
-                }
-            }
+        BasicDBObject query = new BasicDBObject("_id", id);
+        try (MongoCursor<Document> cursor = trucksCollection.find(query).iterator()) {
+            while (cursor.hasNext())
+                target = cursor.next();
         }
 
         return target;
