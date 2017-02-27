@@ -26,9 +26,12 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import wfc.auft.mobile.listeners.ReportDialogClickListener;
+import wfc.auft.mobile.listeners.VoteDialogClickListener;
 import wfc.auft.mobile.tasks.FetchReportsAsyncTask;
 import wfc.auft.mobile.tasks.MapPopulateAsyncTask;
 
@@ -75,7 +78,11 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         deviceID = sharedPref.getString("deviceID", "NO_ID");
 
         if (deviceID.equals("NO_ID")) {
-            deviceID = UUID.randomUUID().toString();
+            SharedPreferences.Editor editor = sharedPref.edit();
+            String uuid = UUID.randomUUID().toString();
+            editor.putString("deviceID", uuid);
+            editor.commit();
+            deviceID = uuid;
         }
 
         Log.d("UUID", deviceID);
@@ -189,26 +196,31 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
 
         map.animateCamera(CameraUpdateFactory.newCameraPosition(newPosition));
         marker.showInfoWindow();
+
         return true;
     }
 
     @Override
     public void onInfoWindowClick(Marker marker) {
+
+        final String locationID = (String) marker.getTag();
+
         if (marker.getTitle().equals("Tap to report truck at this location")) {
-            reportTruckDialog(true);
+            reportTruckDialog(locationID);
         } else  {
             AlertDialog.Builder voteDialog = new AlertDialog.Builder(this);
             voteDialog.setMessage("Is the currently reported truck accurate?");
             voteDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    // send vote
+                    dialog.dismiss();
                 }
             });
             voteDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    reportTruckDialog(false);
+                    dialog.dismiss();
+                    reportTruckDialog(locationID);
                 }
             });
 
@@ -258,8 +270,8 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
                 options.snippet(locations.get(id).get("desc"));
             }
 
-            map.addMarker(options);
-            //mapMarkers.put(id, map.addMarker(options));
+            map.addMarker(options).setTag(id);
+           //markerLocationIds.put(map.addMarker(options), id);
         }
 
         new FetchReportsAsyncTask(this).execute();
@@ -292,25 +304,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
             voteDialog.setPositiveButton("Yes", clickListener);
             voteDialog.setNegativeButton("No", clickListener);
             voteDialog.setNeutralButton("Don't know", clickListener);
-
-//            voteDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    // send vote
-//                }
-//            });
-//            voteDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    // send vote
-//                }
-//            });
-//            voteDialog.setNeutralButton("Don't know", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                   dialog.dismiss();
-//                }
-//            });
 
             voteDialog.show();
         }
@@ -367,20 +360,15 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
         }
     }
 
-    private void reportTruckDialog(boolean vacant) {
+    private void reportTruckDialog(String locationID) {
         String[] truckNames = {"Chick in a Box", "Firetruck Bar-B-Que",  "General Lee Hibachi",
-                "Philly Connection", "Smooth-N-Groove"};
+                "Philly Connection", "Smooth-N-Groove", "University Donut Company"};
 
         AlertDialog.Builder reportDialog = new AlertDialog.Builder(this);
         reportDialog.setTitle("Who's here now?");
-        reportDialog.setItems(truckNames, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
 
-                // implement send report based on vacant or not
-            }
-        });
+        ReportDialogClickListener clickListener = new ReportDialogClickListener(this, deviceID, locationID);
+        reportDialog.setItems(truckNames, clickListener);
         reportDialog.show();
     }
 

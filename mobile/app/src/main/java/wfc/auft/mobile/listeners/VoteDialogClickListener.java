@@ -1,11 +1,9 @@
-package wfc.auft.mobile;
+package wfc.auft.mobile.listeners;
 
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
-import android.widget.Toast;
 
 import wfc.auft.mobile.MainDelegate;
-import wfc.auft.mobile.data.Reports;
 import wfc.auft.mobile.tasks.VoteAsyncTask;
 
 public class VoteDialogClickListener implements DialogInterface.OnClickListener {

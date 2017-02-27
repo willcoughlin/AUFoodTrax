@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class Reports {
 
@@ -38,5 +39,19 @@ public class Reports {
         voteJson.put("vote", vote ? "yes" : "no");
 
         Request.postJsonToUrl(voteJson, REQUEST_URL + "/vote");
+    }
+
+    public static void sendReport(String deviceId, String location, String truck) throws Exception {
+        Random random = new Random();
+        String reportId = Integer.toHexString(random.nextInt(255));
+        reportId = reportId.length() < 2 ? "0" + reportId : reportId;
+
+        JSONObject reportJson = new JSONObject();
+        reportJson.put("_id", reportId);
+        reportJson.put("user", deviceId);
+        reportJson.put("location", location);
+        reportJson.put("truck", truck);
+
+        Request.postJsonToUrl(reportJson, REQUEST_URL + "/new");
     }
 }
