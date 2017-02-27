@@ -1,8 +1,10 @@
 package wfc.auft.webservice.reports;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.util.JSON;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -66,5 +68,18 @@ public class ReportsDao {
 
             reportsCollection.deleteOne(report);
         }
+    }
+
+    public void newReport(String jsonString) {
+        Document document = Document.parse(jsonString);
+
+        String truck = document.getString("truck");
+        String location = document.getString("location");
+
+        Document truckDoc = trucksService.getTruckById(truck);
+        Document locationDoc = locationsService.getLocationById(location);
+
+        if (truckDoc != null && locationDoc != null && !truckDoc.isEmpty() && !locationDoc.isEmpty())
+            reportsCollection.insertOne(document);
     }
 }

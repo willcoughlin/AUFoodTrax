@@ -17,22 +17,22 @@ import java.util.Map;
 @RequestMapping("/trucks")
 public class TrucksController {
 
-    private final TrucksDao trucksDao;
+    private final TrucksService trucksService;
 
     @Autowired
-    public TrucksController(TrucksDao trucksDao) {
-        this.trucksDao = trucksDao;
+    public TrucksController(TrucksService trucksDao) {
+        this.trucksService = trucksDao;
     }
 
     /** @return a Map of all food trucks */
     @RequestMapping(method = RequestMethod.GET)
     public Map<String, Document> getAllTrucks() {
-        return trucksDao.getAllTrucks();
+        return trucksService.getAllTrucks();
     }
 
     /** @return the Document of the target truck if found, null otherwise */
     @RequestMapping(value = "{id}", method = RequestMethod.GET)
     public Document getTruckById(@PathVariable("id") String id) {
-        return trucksDao.getTruckById(id);
+        return trucksService.getTruckById(id);
     }
 }

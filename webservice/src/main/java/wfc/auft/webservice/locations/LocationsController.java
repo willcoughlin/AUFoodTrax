@@ -16,22 +16,23 @@ import java.util.Map;
 @RequestMapping("/locations")
 public class LocationsController {
 
-    private final LocationsDao locationsDao;
+    //private final LocationsDao locationsDao;
+    private final LocationsService locationsService;
 
     @Autowired
-    public LocationsController(LocationsDao locationsDao) {
-        this.locationsDao = locationsDao;
+    public LocationsController(LocationsService locationsService) {
+        this.locationsService = locationsService;
     }
 
     /** @return a Map of all locations */
     @RequestMapping(method = RequestMethod.GET)
     public Map<String, Document> getAllLocations() {
-        return locationsDao.getAllLocations();
+        return locationsService.getAllLocations();
     }
 
     /** @return the Document of the target truck if found, null otherwise */
     @RequestMapping(value = "{id}", method = RequestMethod.GET)
     public Document getLocationById(@PathVariable("id") String id) {
-        return locationsDao.getLocationById(id);
+        return locationsService.getLocationById(id);
     }
 }

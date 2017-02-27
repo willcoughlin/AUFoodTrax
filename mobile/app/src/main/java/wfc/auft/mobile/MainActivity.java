@@ -37,7 +37,6 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
 
     /*
      * TODO implement send report
-     * TODO implement send vote
      * TODO clean commented code
      */
 

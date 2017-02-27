@@ -32,7 +32,11 @@ public class ReportsController {
 
     @RequestMapping(value ="/vote", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public void voteOnReport(@RequestBody String voteJson) {
-
         reportsService.voteOnReport(voteJson);
+    }
+
+    @RequestMapping(value = "/new", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void newReport(@RequestBody String reportJson) {
+        reportsService.newReport(reportJson);
     }
 }
