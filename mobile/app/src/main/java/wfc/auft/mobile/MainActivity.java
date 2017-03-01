@@ -229,52 +229,56 @@ public class MainActivity extends MainDelegate implements OnMapReadyCallback, Vi
     }
 
     public void updateMap(Map<String, Map<String, Map<String, String>>> results) {
-        locations = results.get("locations");
-        trucks = results.get("trucks");
+        if (results == null) {
+            new MapPopulateAsyncTask(this).execute();
+        } else {
+            locations = results.get("locations");
+            trucks = results.get("trucks");
 
-        map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
-        map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
+            map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(32.6025, -85.4865)));
+            map.moveCamera(CameraUpdateFactory.zoomTo(17.5f));
 
-        if (locations == null || locations.isEmpty())
-            return; // no data to load to map
+            if (locations == null || locations.isEmpty())
+                return; // no data to load to map
 
 
-        map.clear();
+            map.clear();
 
-        for (String id : locations.keySet()) {
-            Double lat = Double.parseDouble(locations.get(id).get("lat"));
-            Double lng = Double.parseDouble(locations.get(id).get("lng"));
+            for (String id : locations.keySet()) {
+                Double lat = Double.parseDouble(locations.get(id).get("lat"));
+                Double lng = Double.parseDouble(locations.get(id).get("lng"));
 
-            //pinLocations.put(id, new LatLng(lat, lng));
+                //pinLocations.put(id, new LatLng(lat, lng));
 
-            LatLng position = new LatLng(lat, lng);
+                LatLng position = new LatLng(lat, lng);
 
-            MarkerOptions options =
-                    new MarkerOptions().position(position);
+                MarkerOptions options =
+                        new MarkerOptions().position(position);
 
-            String truckId = locations.get(id).get("truck");
+                String truckId = locations.get(id).get("truck");
 
-            if (truckId.length() > 1) {
-                Map<String, String> currentTruck = trucks.get(truckId);
+                if (truckId.length() > 1) {
+                    Map<String, String> currentTruck = trucks.get(truckId);
 
-                if (currentTruck != null)
-                    options.title(currentTruck.get("name"));
-                else
-                    options.title("No truck at this location");
+                    if (currentTruck != null)
+                        options.title(currentTruck.get("name"));
+                    else
+                        options.title("No truck at this location");
 
-                options.snippet("Tap to confirm or report an error");
+                    options.snippet("Tap to confirm or report an error");
 
-                options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            } else {
-                options.title("Tap to report truck at this location");
-                options.snippet(locations.get(id).get("desc"));
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                } else {
+                    options.title("Tap to report truck at this location");
+                    options.snippet(locations.get(id).get("desc"));
+                }
+
+                map.addMarker(options).setTag(id);
+                //markerLocationIds.put(map.addMarker(options), id);
             }
 
-            map.addMarker(options).setTag(id);
-           //markerLocationIds.put(map.addMarker(options), id);
+            new FetchReportsAsyncTask(this).execute();
         }
-
-        new FetchReportsAsyncTask(this).execute();
     }
 
     public void updateReports(final Map<String, Map<String, String>> reports) {
